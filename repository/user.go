@@ -10,6 +10,7 @@ import (
 type UserRepository interface {
 	InsertUser(ctx context.Context, user *models.User) error
 	GetUserById(ctx context.Context, id int64) (*models.User, error)
+	Close() error
 }
 
 // Implementation for this abstract interface
@@ -28,4 +29,9 @@ func InsertUser(ctx context.Context, user *models.User) error {
 // Function handle by the abstraction
 func GetUserById(ctx context.Context, id int64) (*models.User, error) {
 	return implementation.GetUserById(ctx, id)
+}
+
+// Function handle by the abstraction
+func Close() error {
+	return implementation.Close()
 }
