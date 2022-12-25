@@ -7,6 +7,8 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"hajduksanchez.com/go/rest-websockets/database"
+	"hajduksanchez.com/go/rest-websockets/repository"
 )
 
 // Configuration to connect our server
@@ -56,8 +58,16 @@ func NewServer(ctx context.Context, config *Config) (*Broker, error) {
 func (b *Broker) Start(binder func(server Server, router *mux.Router)) {
 	b.router = mux.NewRouter()
 	binder(b, b.router)
-	log.Println("Starting server on port", b.Config().Port)
 
+	// Start DB connection
+	repo, err := database.NewPostgresRepository(b.config.DBUrl)
+	if err != nil {
+		log.Fatal(err)
+	}
+	repository.SetRepository(repo)
+
+	// Start server
+	log.Println("Starting server on port", b.Config().Port)
 	if err := http.ListenAndServe(b.config.Port, b.router); err != nil {
 		log.Fatal("ListenAndServe: ", err) // If something goes wrong on HTTP initialization
 	}

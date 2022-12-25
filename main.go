@@ -42,4 +42,5 @@ func main() {
 func BindRoutes(server server.Server, router *mux.Router) {
 	// Define endpoints and methods for endpoints
 	router.HandleFunc("/", handlers.HomeHandler(server)).Methods(http.MethodGet)
+	router.HandleFunc("/sign_up", handlers.SignUpHandler(server)).Methods(http.MethodPost)
 }

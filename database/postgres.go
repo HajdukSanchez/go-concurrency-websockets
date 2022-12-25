@@ -27,7 +27,7 @@ func NewPostgresRepository(url string) (*PostgresRepository, error) {
 func (repo *PostgresRepository) InsertUser(ctx context.Context, user *models.User) error {
 	// We use that to create a new SQL statement, passing context to track a debug our flow
 	// $ sign tell user which values needs to pass into statement
-	_, err := repo.db.ExecContext(ctx, "INSERT INTO users (email, password) VALUES ($1, $2)", user.Email, user.Password)
+	_, err := repo.db.ExecContext(ctx, "INSERT INTO users (id, email, password) VALUES ($1, $2, $3)", user.Id, user.Email, user.Password)
 	return err
 }
 
