@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"log"
 
+	_ "github.com/lib/pq" // Import library without use
 	"hajduksanchez.com/go/rest-websockets/models"
 )
 
@@ -31,7 +32,7 @@ func (repo *PostgresRepository) InsertUser(ctx context.Context, user *models.Use
 }
 
 // Implement User repository
-func (repo *PostgresRepository) GetUserById(ctx context.Context, id int64) (*models.User, error) {
+func (repo *PostgresRepository) GetUserById(ctx context.Context, id string) (*models.User, error) {
 	// Query context return rows of data
 	rows, _ := repo.db.QueryContext(ctx, "SELECT id, email FROM users WHERE id = $1", id)
 
