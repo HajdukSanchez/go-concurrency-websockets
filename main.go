@@ -10,6 +10,7 @@ import (
 	"github.com/joho/godotenv"
 	"hajduksanchez.com/go/rest-websockets/handlers"
 	"hajduksanchez.com/go/rest-websockets/server"
+	"hajduksanchez.com/go/rest-websockets/utils"
 )
 
 func main() {
@@ -41,7 +42,7 @@ func main() {
 // Function to handle routes and start server
 func BindRoutes(server server.Server, router *mux.Router) {
 	// Define endpoints and methods for endpoints
-	router.HandleFunc("/", handlers.HomeHandler(server)).Methods(http.MethodGet)
-	router.HandleFunc("/sign_up", handlers.SignUpHandler(server)).Methods(http.MethodPost)
-	router.HandleFunc("/login", handlers.LoginHandler(server)).Methods(http.MethodPost)
+	router.HandleFunc(utils.Home, handlers.HomeHandler(server)).Methods(http.MethodGet)
+	router.HandleFunc(utils.Register, handlers.SignUpHandler(server)).Methods(http.MethodPost)
+	router.HandleFunc(utils.Login, handlers.LoginHandler(server)).Methods(http.MethodPost)
 }
