@@ -2,8 +2,9 @@ package utils
 
 // List of endpoints
 const (
+	Home     string = "/"
 	Login    string = "/login"
 	Register string = "/sign_up"
-	Home     string = "/"
 	User     string = "/user"
+	Post     string = "/post"
 )

@@ -88,6 +88,14 @@ func (repo *PostgresRepository) GetUserByEmail(ctx context.Context, email string
 }
 
 // Implement User repository
+func (repo *PostgresRepository) InsertPost(ctx context.Context, post *models.Post) error {
+	// We use that to create a new SQL statement, passing context to track a debug our flow
+	// $ sign tell user which values needs to pass into statement
+	_, err := repo.db.ExecContext(ctx, "INSERT INTO user_posts (id, user_id, content) VALUES ($1, $2, $3)", post.Id, post.UserId, post.Content)
+	return err
+}
+
+// Implement User repository
 func (repo *PostgresRepository) Close() error {
 	return repo.db.Close()
 }

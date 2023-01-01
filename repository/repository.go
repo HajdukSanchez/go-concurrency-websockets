@@ -7,18 +7,19 @@ import (
 )
 
 // Repository for handle user process
-type UserRepository interface {
+type Repository interface {
 	InsertUser(ctx context.Context, user *models.User) error
 	GetUserById(ctx context.Context, id string) (*models.User, error)
 	GetUserByEmail(ctx context.Context, email string) (*models.User, error)
+	InsertPost(ctx context.Context, user *models.Post) error
 	Close() error
 }
 
 // Implementation for this abstract interface
-var implementation UserRepository
+var implementation Repository
 
 // Function to handle dependency injection for this repository abstraction
-func SetRepository(repository UserRepository) {
+func SetRepository(repository Repository) {
 	implementation = repository
 }
 
@@ -35,6 +36,11 @@ func GetUserById(ctx context.Context, id string) (*models.User, error) {
 // Function handle by the abstraction
 func GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
 	return implementation.GetUserByEmail(ctx, email)
+}
+
+// Function handle by the abstraction
+func InsertPost(ctx context.Context, post *models.Post) error {
+	return implementation.InsertPost(ctx, post)
 }
 
 // Function handle by the abstraction
