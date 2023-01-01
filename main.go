@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	"hajduksanchez.com/go/rest-websockets/handlers"
+	"hajduksanchez.com/go/rest-websockets/middleware"
 	"hajduksanchez.com/go/rest-websockets/server"
 	"hajduksanchez.com/go/rest-websockets/utils"
 )
@@ -41,8 +42,12 @@ func main() {
 
 // Function to handle routes and start server
 func BindRoutes(server server.Server, router *mux.Router) {
+	// Define middleware
+	router.Use(middleware.AuthMiddleware(server))
+
 	// Define endpoints and methods for endpoints
 	router.HandleFunc(utils.Home, handlers.HomeHandler(server)).Methods(http.MethodGet)
 	router.HandleFunc(utils.Register, handlers.SignUpHandler(server)).Methods(http.MethodPost)
 	router.HandleFunc(utils.Login, handlers.LoginHandler(server)).Methods(http.MethodPost)
+	router.HandleFunc(utils.User, handlers.UserHandler(server)).Methods(http.MethodGet)
 }

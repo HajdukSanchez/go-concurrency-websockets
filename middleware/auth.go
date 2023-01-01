@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"log"
 	"net/http"
 	"strings"
 
@@ -32,10 +31,9 @@ func shouldCheckToken(route string) bool {
 // Middleware returns next function handler specified
 // That is because middleware works as a previous handler function that surround a handler function
 // If everything ok, handler function passed will be executed
-func CheckAuthMiddleware(s server.Server) func(h http.Handler) http.Handler {
+func AuthMiddleware(s server.Server) func(h http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			log.Println(r.URL.Path)
 			// Validate if route needs to be authenticated
 			if !shouldCheckToken(r.URL.Path) {
 				next.ServeHTTP(w, r) // Continue with handler function of the specific path
@@ -44,7 +42,7 @@ func CheckAuthMiddleware(s server.Server) func(h http.Handler) http.Handler {
 
 			// Get Token and validate if user has permission based on this specific token
 			tokenString := strings.TrimSpace(r.Header.Get("Authorization"))
-			_, err := jwt.ParseWithClaims(tokenString, models.AppClaims{}, func(token *jwt.Token) (interface{}, error) {
+			_, err := jwt.ParseWithClaims(tokenString, &models.AppClaims{}, func(token *jwt.Token) (interface{}, error) {
 				return []byte(s.Config().JWTSecret), nil
 			})
 			if err != nil {

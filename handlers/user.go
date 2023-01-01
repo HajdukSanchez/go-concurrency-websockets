@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -120,5 +121,39 @@ func LoginHandler(s server.Server) http.HandlerFunc {
 		json.NewEncoder(w).Encode(LoginResponse{
 			Token: tokenString,
 		})
+	}
+}
+
+// Get user based on Auth token
+func UserHandler(s server.Server) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Get Token
+		tokenString := strings.TrimSpace(r.Header.Get("Authorization"))
+		// Validate Token
+		token, err := jwt.ParseWithClaims(tokenString, &models.AppClaims{}, func(token *jwt.Token) (interface{}, error) {
+			return []byte(s.Config().JWTSecret), nil
+		})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusUnauthorized)
+			return
+		}
+
+		// Try to get data from Token validating if token is valid
+		if claims, ok := token.Claims.(*models.AppClaims); ok && token.Valid {
+			// Get user by ID from the Token Payload
+			user, err := repository.GetUserById(r.Context(), claims.UserId)
+			// Error getting user
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			// Response user
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(user)
+		} else {
+			// Error with Token
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
 }
