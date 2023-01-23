@@ -8,4 +8,5 @@ const (
 	User     string = "/user"
 	Post     string = "/post"
 	PostId   string = "/post/{id}"
+	Posts    string = "/posts"
 )

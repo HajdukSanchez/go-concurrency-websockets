@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/segmentio/ksuid"
@@ -150,6 +151,35 @@ func DeletePostHandler(s server.Server) http.HandlerFunc {
 			// Error with Token
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
+		}
+	}
+}
+
+// Handler to get a list of post by page
+func ListPostHandler(s server.Server) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var err error
+		var page = uint64(0)
+
+		pageString := r.URL.Query().Get("page") // Get 'page' query parameter
+
+		if pageString != "" {
+			page, err = strconv.ParseUint(pageString, 10, 64)
+
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+
+			posts, err := repository.ListPost(r.Context(), page)
+
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(posts) // Return list of posts
 		}
 	}
 }

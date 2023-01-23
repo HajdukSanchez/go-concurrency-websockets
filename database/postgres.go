@@ -140,6 +140,39 @@ func (repo *PostgresRepository) DeletePost(ctx context.Context, id string, userI
 }
 
 // Implement User repository
+func (repo *PostgresRepository) ListPost(ctx context.Context, page uint64) ([]*models.Post, error) {
+	// Query context return update status
+	rows, err := repo.db.QueryContext(ctx, "SELECT id, content, user_id, created_at FROM user_posts LIMIT $1 OFFSET $2", 2, page)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		err := rows.Close() // Close database connection
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	var posts []*models.Post
+	for rows.Next() {
+		var post = models.Post{}
+		// Try to map values from rows into model
+		if err := rows.Scan(&post.Id, &post.Content, &post.UserId, &post.CreatedAt); err == nil {
+			posts = append(posts, &post) // Append post to slice of posts
+		}
+	}
+
+	// If there is some error getting data from database
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return posts, nil
+}
+
+// Implement User repository
 func (repo *PostgresRepository) Close() error {
 	return repo.db.Close()
 }
