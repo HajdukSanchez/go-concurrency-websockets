@@ -96,6 +96,50 @@ func (repo *PostgresRepository) InsertPost(ctx context.Context, post *models.Pos
 }
 
 // Implement User repository
+func (repo *PostgresRepository) GetPostById(ctx context.Context, id string) (*models.Post, error) {
+	// Query context return rows of data
+	rows, _ := repo.db.QueryContext(ctx, "SELECT id, content, user_id, created_at FROM user_posts WHERE id = $1", id)
+
+	defer func() {
+		err := rows.Close() // Close database connection
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	var post = models.Post{}
+	for rows.Next() {
+		// Try to map values from rows into model
+		if err := rows.Scan(&post.Id, &post.Content, &post.UserId, &post.CreatedAt); err == nil {
+			return &post, nil // Everything ok
+		}
+	}
+
+	// If there is some error getting data from database
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return &post, nil
+}
+
+// Implement User repository
+func (repo *PostgresRepository) UpdatePost(ctx context.Context, post *models.Post) error {
+	// Query context return update status
+	_, err := repo.db.ExecContext(ctx, "UPDATE user_posts SET content = $1 WHERE id = $2 AND user_id = $3", post.Content, post.Id, post.UserId)
+
+	return err
+}
+
+// Implement User repository
+func (repo *PostgresRepository) DeletePost(ctx context.Context, id string, userId string) error {
+	// Query context return update status
+	_, err := repo.db.ExecContext(ctx, "DELETE FROM user_posts WHERE id = $1 AND user_id = $2", id, userId)
+
+	return err
+}
+
+// Implement User repository
 func (repo *PostgresRepository) Close() error {
 	return repo.db.Close()
 }

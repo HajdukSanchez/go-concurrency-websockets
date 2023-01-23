@@ -7,4 +7,5 @@ const (
 	Register string = "/sign_up"
 	User     string = "/user"
 	Post     string = "/post"
+	PostId   string = "/post/{id}"
 )
