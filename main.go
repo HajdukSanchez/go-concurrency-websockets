@@ -12,6 +12,7 @@ import (
 	"hajduksanchez.com/go/rest-websockets/middleware"
 	"hajduksanchez.com/go/rest-websockets/server"
 	"hajduksanchez.com/go/rest-websockets/utils"
+	"hajduksanchez.com/go/rest-websockets/websocket"
 )
 
 func main() {
@@ -42,6 +43,9 @@ func main() {
 
 // Function to handle routes and start server
 func BindRoutes(server server.Server, router *mux.Router) {
+	// Create new websocket hub
+	hub := websocket.NewHub()
+
 	// Define middleware
 	router.Use(middleware.AuthMiddleware(server))
 
@@ -55,4 +59,7 @@ func BindRoutes(server server.Server, router *mux.Router) {
 	router.HandleFunc(utils.PostId, handlers.UpdatePostHandler(server)).Methods(http.MethodPut)
 	router.HandleFunc(utils.PostId, handlers.DeletePostHandler(server)).Methods(http.MethodDelete)
 	router.HandleFunc(utils.Posts, handlers.ListPostHandler(server)).Methods(http.MethodGet)
+
+	// Add new endpoint for handler connection of websocket
+	router.HandleFunc(utils.WebSocket, hub.HandleWebSocket)
 }
