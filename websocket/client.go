@@ -6,7 +6,7 @@ type Client struct {
 	hub      *Hub            // Hub of messages
 	id       string          // Client id
 	socket   *websocket.Conn // Socket connection for specific client
-	outbound chan []byte     // Messages to be send
+	outbound chan []byte     // Channel to handle Messages to be send
 }
 
 func NewClient(hub *Hub, socket *websocket.Conn) *Client {

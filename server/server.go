@@ -9,6 +9,8 @@ import (
 	"github.com/gorilla/mux"
 	"hajduksanchez.com/go/rest-websockets/database"
 	"hajduksanchez.com/go/rest-websockets/repository"
+
+	websocket "hajduksanchez.com/go/rest-websockets/websocket"
 )
 
 // Configuration to connect our server
@@ -19,18 +21,24 @@ type Config struct {
 }
 
 type Server interface {
-	Config() *Config // Server configuration
+	Config() *Config     // Server configuration
+	Hub() *websocket.Hub // Hub configuration for websocket
 }
 
 // / Broker is going to handle servers
 type Broker struct {
 	config *Config     // Properties to configure
 	router *mux.Router // Router to define API routes
+	hub    *websocket.Hub
 }
 
 // Broker is no a server implementation
 func (b *Broker) Config() *Config {
 	return b.config
+}
+
+func (b *Broker) Hub() *websocket.Hub {
+	return b.hub
 }
 
 // Create a new server
@@ -50,6 +58,7 @@ func NewServer(ctx context.Context, config *Config) (*Broker, error) {
 	broker := &Broker{
 		config: config,
 		router: mux.NewRouter(),
+		hub:    websocket.NewHub(),
 	}
 	return broker, nil
 }
@@ -64,6 +73,9 @@ func (b *Broker) Start(binder func(server Server, router *mux.Router)) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	// Add new endpoint for handler connection of websocket
+	go b.hub.Run() // Start websocket new subroutine
+
 	repository.SetRepository(repo)
 
 	// Start server

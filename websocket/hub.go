@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 	"sync"
@@ -42,4 +43,60 @@ func (hub *Hub) HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 	hub.register <- client // Send Client to register channel
 
 	go client.Write() // New routine in charge of sending messages to client
+}
+
+func (hub *Hub) Run() {
+	for {
+		select {
+		case client := <-hub.register:
+			hub.onConnect(client)
+		case client := <-hub.unregister:
+			hub.onDisconnect(client)
+		}
+	}
+}
+
+// Show client connects and his Address
+func (hub *Hub) onConnect(client *Client) {
+	log.Println("Client connected", client.socket.RemoteAddr())
+
+	// Lock hub to handle user connection before accept another connection
+	hub.mutex.Lock()
+	// Unlock hub at the end of connection
+	defer hub.mutex.Unlock()
+
+	client.id = client.socket.RemoteAddr().String() // Client ID is his address connection
+	hub.clients = append(hub.clients, client)       // Add new client to slice
+}
+
+func (hub *Hub) onDisconnect(client *Client) {
+	log.Println("Client disconnect", client.socket.RemoteAddr())
+
+	// Close client connection
+	client.socket.Close()
+
+	// Lock channel to disconnect client before other clients disconnect
+	hub.mutex.Lock()
+	defer hub.mutex.Unlock()
+
+	i := -1
+	for index, clientData := range hub.clients {
+		if clientData.id == client.id {
+			i = index // Client index on slice
+		}
+	}
+
+	copy(hub.clients[i:], hub.clients[i+1:])       // Copy without this specific entry (i)
+	hub.clients[len(hub.clients)-1] = nil          // Last position on slice will be set to nil
+	hub.clients = hub.clients[:len(hub.clients)-1] // New slice without last position
+}
+
+// Message send to every client except for ignoreClient specified
+func (hub *Hub) Broadcast(message interface{}, ignoreClient *Client) {
+	data, _ := json.Marshal(message)
+	for _, client := range hub.clients {
+		if client != ignoreClient {
+			client.outbound <- data // Send message to outbound channel to send message to each client
+		}
+	}
 }
